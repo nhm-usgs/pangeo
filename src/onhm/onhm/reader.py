@@ -57,15 +57,22 @@ def get_feat_coord(feat, data_set, feat_id):
     return lat,lon
 
 
-def get_hruids_for_box(ds_out, lat_min, lat_max, lon_min, lon_max, var):
-    lat = ds_out.hru_lat
-    sel = lat.sel(hruid=((lat.values >= lat_min) & (lat.values <= lat_max)))
+def get_hrus_for_box(ds, lat_min, lat_max, lon_min, lon_max):
+    sel = ds.hru_lat.sel(hruid=((ds.hru_lat.values >= lat_min)
+                            & (ds.hru_lat.values <= lat_max)))
     ids_1 = sel.hruid.values
-
-    lon = ds_out.hru_lon
-    sel_1 = lon.sel(hruid=ids_1)
+    sel_1 = ds.hru_lon.sel(hruid=ids_1)
     sel_2 = sel_1.sel(hruid=((sel_1.values >= lon_min) & (sel_1.values <= lon_max)))
     ids_2 = sel_2.hruid.values
-    
+    return ids_2
+
+
+def get_segs_for_box(ds, lat_min, lat_max, lon_min, lon_max):
+    sel = ds.seg_lat.sel(segid=((ds.seg_lat.values >= lat_min)
+                            & (ds.seg_lat.values <= lat_max)))
+    ids_1 = sel.segid.values
+    sel_1 = ds.seg_lon.sel(segid=ids_1)
+    sel_2 = sel_1.sel(segid=((sel_1.values >= lon_min) & (sel_1.values <= lon_max)))
+    ids_2 = sel_2.segid.values
     return ids_2
     

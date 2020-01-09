@@ -6,7 +6,7 @@ To build and install the onhm python package:
 
 -or-
 
-(2) run "pip intall -e ."
+(2) run "pip install -e ."
 
 if you are developing the code inside of the onhm package.
 
