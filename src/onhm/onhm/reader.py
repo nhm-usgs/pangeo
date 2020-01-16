@@ -7,6 +7,8 @@ Created on Thu Dec 12 08:00:48 2019
 import xarray as xr
 import glob
 import os
+import pandas as pd
+import numpy as np
 
 
 def varbrowser(d="",word=""):
@@ -75,4 +77,39 @@ def get_segs_for_box(ds, lat_min, lat_max, lon_min, lon_max):
     sel_2 = sel_1.sel(segid=((sel_1.values >= lon_min) & (sel_1.values <= lon_max)))
     ids_2 = sel_2.segid.values
     return ids_2
+
+
+def get_values_for_DOY(ds, timestamp, hru_ids, var_name):
+    if (timestamp < pd.Timestamp('1979-10-01') or timestamp > pd.Timestamp('1980-09-30')):
+        print("The date you provided is outside of range 1979-10-01 to 1980-09-30")
+        return None
+        
+    time_range = pd.date_range(timestamp, freq='1Y', periods=40)
+    dif = timestamp - time_range[0]
+    time_range = time_range + dif
+    # print(time_range)
+
+    date_list = []
+    val_list = []
+    for ts in time_range:
+        try:
+            date_str = str(ts.year).zfill(4) + '-' + str(ts.month).zfill(2) + '-' + str(ts.day).zfill(2)
+            ds_sel = ds[var_name].sel(hruid=hru_ids, time=date_str)
+            val = ds_sel.values[0][0]
+            date_list.append(date_str + 'T05:00:00')
+            val_list.append(val)
+        except:
+            pass
+        
+    val_np = np.asarray(val_list, dtype=np.float64)
+    val_np = val_np.reshape((1, val_np.shape[0]))
+    hru_ids_np = np.asarray(hru_ids, dtype=np.int32)
+    date_np = np.asarray(date_list, dtype='datetime64[ns]')
+    
+    attrs = ds[var_name].attrs
+    da_new = xr.DataArray(data=val_np, dims=['hruid','time'],
+                          coords={'hruid':hru_ids_np,'time':date_np},
+                          attrs=attrs)
+
+    return da_new
     
